@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from models.relu_function import myRelu
+from models.softmax_function import mySoftmax
 
 
 class ConvNet(nn.Module):
@@ -40,7 +41,7 @@ class ConvNet(nn.Module):
 
         self.relu = myRelu.apply
         self.dropout = nn.Dropout(p=0.5)
-        self.softmax = nn.Softmax(dim=1)
+        self.softmax = mySoftmax.apply
 
     def forward(self, x):
         """
