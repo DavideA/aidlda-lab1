@@ -1,3 +1,8 @@
+"""
+Main file for training a Convolutional Neural Network for image classification.
+Training is performed on CIFAR-10
+"""
+
 from __future__ import print_function
 
 import torch
@@ -9,79 +14,165 @@ from models import ConvNet
 from models import crossentropy_loss
 from utils import progress_bar
 
+# Select device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-best_acc = 0  # best test accuracy
-start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
-# Data
-print('==> Preparing data..')
-transform_train = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
 
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
+def get_cifar_loaders():
+    """
+    Provides dataloaders for CIFAR-10.
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
+    Returns
+    -------
+    tuple
+        trainloader: torch.utils.data.DataLoader
+            the DataLoader for training examples
+        testloader: torch.utils.data.DataLoader
+            the DataLoader for test examples
+    """
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
+    # Transforms
+    transform_train = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
-# Model
-print('==> Building model..')
-model = ConvNet(n_classes=10)
-model = model.to(device)
+    # Initialize datasets
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    # Initialize loaders
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
 
-# Training
-def train(epoch):
-    print('\n\nEpoch: %d' % epoch)
+    return trainloader, testloader
+
+
+def train(model, loader, opt):
+    """
+    Training function. Trains a model for one epoch.
+
+    Parameters
+    ----------
+    model: torch.nn.Module
+        the model to be trained.
+    loader: torch.utils.data.DataLoader
+        the data loader providing training examples.
+    opt: torch.optim.Optimizer
+        the optimizer to be employed for training.
+
+    Returns
+    -------
+    None
+    """
+
+    # Set the model in train mode
     model.train()
+
     train_loss = 0
     correct = 0
     total = 0
-    for batch_idx, (inputs, targets) in enumerate(trainloader):
 
+    # Loop over training examples
+    for batch_idx, (inputs, targets) in enumerate(loader):
+
+        # Get a batch of examples
         inputs, targets = inputs.to(device), targets.to(device)
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = crossentropy_loss(y_true=targets, y_pred=outputs)
-        loss.backward()
-        optimizer.step()
 
+        # Predict
+        outputs = model(inputs)
+
+        # Compute loss
+        loss = crossentropy_loss(y_true=targets, y_pred=outputs)
+
+        # Backward pass and update
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+
+        # Update statistics
         train_loss += loss.item()
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
-        progress_bar('TRAINING', batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+        # Print
+        progress_bar('TRAINING', batch_idx, len(loader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                      % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
-def test(epoch):
-    global best_acc
+
+def test(model, loader):
+    """
+    Test function. Tests a model on the test set.
+
+    Parameters
+    ----------
+    model: torch.nn.Module
+        the model to be tested.
+    loader: torch.utils.data.DataLoader
+        the data loader providing test examples.
+
+    Returns
+    -------
+    None
+    """
+
+    # Set the model in test mode
     model.eval()
+
     test_loss = 0
     correct = 0
     total = 0
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(testloader):
+        for batch_idx, (inputs, targets) in enumerate(loader):
+
+            # Get a batch of examples
             inputs, targets = inputs.to(device), targets.to(device)
+
+            # Predict
             outputs = model(inputs)
+
+            # Compute loss
             loss = crossentropy_loss(y_true=targets, y_pred=outputs)
             test_loss += loss.item()
+
+            # Update statistics
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-            progress_bar('TESTING', batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            # Print
+            progress_bar('TESTING', batch_idx, len(loader), 'Loss: %.3f │ Acc: %.3f%% (%d/%d)'
                          % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
 
-for epoch in range(start_epoch, start_epoch+200):
-    train(epoch)
-    test(epoch)
+def main():
+    """ The main function. """
+
+    # Get data loaders
+    trainloader, testloader = get_cifar_loaders()
+
+    # Get model
+    print('==> Building model..')
+    model = ConvNet(n_classes=10).to(device)
+    print(model)
+
+    # Get optimizer
+    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+    # Train
+    for epoch in range(0, 10):
+
+        print('\n\nEpoch: %d' % epoch)
+
+        train(model, trainloader, optimizer)
+        test(model, trainloader)
+
+
+# entry point
+if __name__ == '__main__':
+    main()
