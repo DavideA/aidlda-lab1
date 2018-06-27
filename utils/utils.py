@@ -1,13 +1,37 @@
+"""
+This file holds some utility functions, mainly concerning progress bar printing.
+"""
+
 import time
 
 term_width = 211
-
 TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
 begin_time = last_time
 
+
 def progress_bar(stage, current, total, loss_str=None):
+    """
+    Function to print a progress bar.
+
+    Parameters
+    ----------
+    stage: str
+        either `TRAINING` or `TESTING`.
+    current: int
+        the index of the current batch.
+    total: int
+        the total number of batches.
+    loss_str: str
+        a string describing loss and accuracies.
+
+    Returns
+    -------
+    None
+    """
+
     global last_time, begin_time
+
     if current == 0:
         print('')
         begin_time = time.time()  # Reset for new bar.
@@ -32,15 +56,30 @@ def progress_bar(stage, current, total, loss_str=None):
 
     msg = ''
     msg += ' Step: %s' % format_time(step_time)
-    msg += ' | Tot: %s' % format_time(tot_time)
+    msg += ' │ Tot: %s' % format_time(tot_time)
     if bar:
-        msg += ' | ' + bar
+        msg += ' │ ' + bar
 
     msg = msg + ' ' + loss_str
+
     print('\r' + msg, end='', flush=True)
 
 
 def format_time(seconds):
+    """
+    Turns seconds into a string representation.
+
+    Parameters
+    ----------
+    seconds: int
+        the number of seconds.
+
+    Returns
+    -------
+    str
+        the string representation
+    """
+
     days = int(seconds / 3600/24)
     seconds = seconds - days*3600*24
     hours = int(seconds / 3600)
