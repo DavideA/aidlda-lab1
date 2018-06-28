@@ -3,6 +3,33 @@ import torch.nn as nn
 from models.relu_function import myRelu
 from models.softmax_function import mySoftmax
 from models.dropout_function import myDropout
+from models.linear_function import myLinear
+from torch.nn.init import xavier_uniform
+
+def get_linear_parameters(in_features, out_features):
+    """
+    Initializes parameters of a linear layer with xavier uniform.
+
+    Parameters
+    ----------
+    in_features: int
+        fan in of the layer.
+    out_features: int
+        fan out of the layer.
+
+    Returns
+    -------
+    tuple
+        weights: torch.nn.Parameter
+            weights of the linear layer.
+        bias: torch.nn.Parameter
+            bias of the linear layer.
+    """
+
+    weights = nn.Parameter(xavier_uniform(torch.randn(in_features, out_features)))
+    bias = nn.Parameter(torch.zeros(out_features))
+
+    return weights, bias
 
 
 class ConvNet(nn.Module):
@@ -10,7 +37,7 @@ class ConvNet(nn.Module):
     A Convolutional Neural Network.
     """
 
-    def __init__(self, n_classes=10):
+    def __init__(self, n_classes):
         """
         Model constructor.
 
@@ -21,6 +48,8 @@ class ConvNet(nn.Module):
         """
 
         super(ConvNet, self).__init__()
+
+        self.n_classes = n_classes
 
         # Initialize layers
         self.conv1_1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=(3,3), padding=(1,1))
@@ -36,13 +65,27 @@ class ConvNet(nn.Module):
         self.conv3_3 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3,3), padding=(1,1))
         self.pool3 = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
 
-        self.fc1 = nn.Linear(in_features=(128 * 4 * 4), out_features=512)
-        self.fc2 = nn.Linear(in_features=512, out_features=256)
-        self.fc3 = nn.Linear(in_features=256, out_features=n_classes)
+        self.init_fc_layers()
 
+        self.linear = myLinear.apply
         self.relu = myRelu.apply
         self.dropout = myDropout.apply
         self.softmax = mySoftmax.apply
+
+    def init_fc_layers(self):
+
+        # Create random weights
+        fc1_w, fc1_b = get_linear_parameters(in_features=(128 * 4 * 4), out_features=512)
+        fc2_w, fc2_b = get_linear_parameters(in_features=512, out_features=256)
+        fc3_w, fc3_b = get_linear_parameters(in_features=256, out_features=self.n_classes)
+
+        # Register
+        self.register_parameter('fc1_w', fc1_w)
+        self.register_parameter('fc1_b', fc1_b)
+        self.register_parameter('fc2_w', fc2_w)
+        self.register_parameter('fc2_b', fc2_b)
+        self.register_parameter('fc3_w', fc3_w)
+        self.register_parameter('fc3_b', fc3_b)
 
     def forward(self, x):
         """
@@ -80,10 +123,10 @@ class ConvNet(nn.Module):
 
         # Classify
         h = self.dropout(h, 0.5, self.training)
-        h = self.relu(self.fc1(h))
+        h = self.relu(self.linear(h, self.fc1_w, self.fc1_b))
         h = self.dropout(h, 0.5, self.training)
-        h = self.relu(self.fc2(h))
-        h = self.softmax(self.fc3(h), 1)
+        h = self.relu(self.linear(h, self.fc2_w, self.fc2_b))
+        h = self.softmax(self.linear(h, self.fc3_w, self.fc3_b), 1)
 
         o = h
 
