@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from models.relu_function import myRelu
 from models.softmax_function import mySoftmax
+from models.dropout_function import myDropout
 
 
 class ConvNet(nn.Module):
@@ -40,7 +41,7 @@ class ConvNet(nn.Module):
         self.fc3 = nn.Linear(in_features=256, out_features=n_classes)
 
         self.relu = myRelu.apply
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout = myDropout.apply
         self.softmax = mySoftmax.apply
 
     def forward(self, x):
@@ -78,11 +79,11 @@ class ConvNet(nn.Module):
         h = h.view(len(x), 128 * 4 * 4)
 
         # Classify
-        h = self.dropout(h)
+        h = self.dropout(h, 0.5, self.training)
         h = self.relu(self.fc1(h))
-        h = self.dropout(h)
+        h = self.dropout(h, 0.5, self.training)
         h = self.relu(self.fc2(h))
-        h = self.softmax(self.fc3(h))
+        h = self.softmax(self.fc3(h), 1)
 
         o = h
 
