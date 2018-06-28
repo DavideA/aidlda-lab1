@@ -170,7 +170,7 @@ def main():
         print('\n\nEpoch: %d' % epoch)
 
         train(model, trainloader, optimizer)
-        test(model, trainloader)
+        test(model, testloader)
 
 
 # entry point
