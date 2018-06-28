@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.nn.init import xavier_uniform
-from torch.nn.init import xavier_normal
+import torch.nn.init as init
 
 from models.dropout_function import myDropout
 from models.linear_function import myLinear
@@ -31,21 +30,46 @@ def get_linear_parameters(in_features, out_features):
             bias of the linear layer.
     """
 
-    weights = nn.Parameter(xavier_uniform(torch.randn(in_features, out_features)))
-    bias = nn.Parameter(torch.zeros(out_features))
+    weights = nn.Parameter(torch.empty(in_features, out_features))
+    bias = nn.Parameter(torch.empty(out_features))
+
+    init.xavier_uniform_(weights)
+    init.constant_(bias, 0.)
 
     return weights, bias
 
 
 def get_conv_parameters(in_channels, out_channels, kernel_size):
+    """
+    Initializes parameters of a convolutional layer with xavier normal.
+
+    Parameters
+    ----------
+    in_channels: int
+        fan in of the layer.
+    out_channels: int
+        fan out of the layer.
+    kernel_size: tuple
+        the kernel size.
+
+    Returns
+    -------
+    tuple
+        weights: torch.nn.Parameter
+            weights of the convolutional layer.
+        bias: torch.nn.Parameter
+            bias of the convolutional layer.
+    """
 
     k_h, k_w  = kernel_size
 
-    weights = nn.Parameter(xavier_normal(torch.randn(out_channels, in_channels, k_h, k_w)))
-    bias = nn.Parameter(torch.zeros(out_channels))
+    weights = nn.Parameter(torch.empty(out_channels, in_channels, k_h, k_w))
+    bias = nn.Parameter(torch.empty(out_channels))
+
+    init.xavier_normal_(weights)
+    init.constant_(bias, 0.)
 
     return weights, bias
-
 
 
 class ConvNet(nn.Module):
