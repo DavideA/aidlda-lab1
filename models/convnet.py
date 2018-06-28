@@ -6,6 +6,7 @@ from models.dropout_function import myDropout
 from models.linear_function import myLinear
 from models.relu_function import myRelu
 from models.softmax_function import mySoftmax
+from models.maxpool_function import myMaxpool
 
 
 def get_linear_parameters(in_features, out_features):
@@ -73,6 +74,7 @@ class ConvNet(nn.Module):
         self.relu = myRelu.apply
         self.dropout = myDropout.apply
         self.softmax = mySoftmax.apply
+        self.maxpool = myMaxpool.apply
 
     def init_fc_layers(self):
 
@@ -110,15 +112,15 @@ class ConvNet(nn.Module):
         h = self.relu(self.conv1_1(h))
         h = self.relu(self.conv1_2(h))
         h = self.relu(self.conv1_3(h))
-        h = self.pool1(h)
+        h = self.maxpool(h, 2, 2)
         h = self.relu(self.conv2_1(h))
         h = self.relu(self.conv2_2(h))
         h = self.relu(self.conv2_3(h))
-        h = self.pool2(h)
+        h = self.maxpool(h, 2, 2)
         h = self.relu(self.conv3_1(h))
         h = self.relu(self.conv3_2(h))
         h = self.relu(self.conv3_3(h))
-        h = self.pool3(h)
+        h = self.maxpool(h, 2, 2)
 
         # Flatten out
         h = h.view(len(x), 128 * 4 * 4)
