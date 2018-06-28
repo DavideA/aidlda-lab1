@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
-from models.relu_function import myRelu
-from models.softmax_function import mySoftmax
+from torch.nn.init import xavier_uniform
+
 from models.dropout_function import myDropout
 from models.linear_function import myLinear
-from torch.nn.init import xavier_uniform
+from models.relu_function import myRelu
+from models.softmax_function import mySoftmax
+
 
 def get_linear_parameters(in_features, out_features):
     """
