@@ -159,7 +159,6 @@ def main():
     # Get model
     print('==> Building model..')
     model = ConvNet(n_classes=10).to(device)
-    print(model)
 
     # Get optimizer
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
