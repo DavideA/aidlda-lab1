@@ -2,12 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 
+from models.conv_function import myConv
 from models.dropout_function import myDropout
 from models.linear_function import myLinear
+from models.maxpool_function import myMaxpool
 from models.relu_function import myRelu
 from models.softmax_function import mySoftmax
-from models.maxpool_function import myMaxpool
-from models.conv_function import myConv
 
 
 def get_linear_parameters(in_features, out_features):
@@ -119,15 +119,15 @@ class ConvNet(nn.Module):
     def init_conv_layers(self):
 
         # Create random weights
-        conv1_1_w, conv1_1_b = get_conv_parameters(in_channels=3, out_channels=5, kernel_size=(3,3))
-        conv1_2_w, conv1_2_b = get_conv_parameters(in_channels=5, out_channels=5, kernel_size=(3,3))
-        conv1_3_w, conv1_3_b = get_conv_parameters(in_channels=5, out_channels=5, kernel_size=(3,3))
-        conv2_1_w, conv2_1_b = get_conv_parameters(in_channels=5, out_channels=10, kernel_size=(3,3))
-        conv2_2_w, conv2_2_b = get_conv_parameters(in_channels=10, out_channels=10, kernel_size=(3,3))
-        conv2_3_w, conv2_3_b = get_conv_parameters(in_channels=10, out_channels=10, kernel_size=(3,3))
-        conv3_1_w, conv3_1_b = get_conv_parameters(in_channels=10, out_channels=15, kernel_size=(3,3))
-        conv3_2_w, conv3_2_b = get_conv_parameters(in_channels=15, out_channels=15, kernel_size=(3,3))
-        conv3_3_w, conv3_3_b = get_conv_parameters(in_channels=15, out_channels=15, kernel_size=(3,3))
+        conv1_1_w, conv1_1_b = get_conv_parameters(in_channels=3, out_channels=5, kernel_size=(3, 3))
+        conv1_2_w, conv1_2_b = get_conv_parameters(in_channels=5, out_channels=5, kernel_size=(3, 3))
+        conv1_3_w, conv1_3_b = get_conv_parameters(in_channels=5, out_channels=5, kernel_size=(3, 3))
+        conv2_1_w, conv2_1_b = get_conv_parameters(in_channels=5, out_channels=10, kernel_size=(3, 3))
+        conv2_2_w, conv2_2_b = get_conv_parameters(in_channels=10, out_channels=10, kernel_size=(3, 3))
+        conv2_3_w, conv2_3_b = get_conv_parameters(in_channels=10, out_channels=10, kernel_size=(3, 3))
+        conv3_1_w, conv3_1_b = get_conv_parameters(in_channels=10, out_channels=15, kernel_size=(3, 3))
+        conv3_2_w, conv3_2_b = get_conv_parameters(in_channels=15, out_channels=15, kernel_size=(3, 3))
+        conv3_3_w, conv3_3_b = get_conv_parameters(in_channels=15, out_channels=15, kernel_size=(3, 3))
 
         self.register_parameter('conv1_1_w', conv1_1_w)
         self.register_parameter('conv1_1_b', conv1_1_b)

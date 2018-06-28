@@ -1,6 +1,7 @@
 import torch
 from torch.distributions import Bernoulli
 
+
 class myDropout(torch.autograd.Function):
     """
     This autograd function implements a Dropout regularization.
